@@ -22,17 +22,10 @@ jobs:
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
 
-    - name: Create missing Gradle files
+    - name: Build with Gradle
       run: |
         cd android
-        # Gradle wrapper oluştur
-        gradle wrapper || echo "Trying alternative method"
-        
-    - name: Build APK
-      run: |
-        cd android
-        chmod +x ./gradlew
-        ./gradlew assembleRelease
+        gradle assembleRelease
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
