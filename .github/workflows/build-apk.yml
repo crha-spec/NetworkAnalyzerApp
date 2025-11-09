@@ -2,9 +2,7 @@ name: Build Android APK
 
 on:
   push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -24,56 +22,20 @@ jobs:
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
 
-    - name: Cache Gradle
-      uses: actions/cache@v3
-      with:
-        path: |
-          ~/.gradle/caches
-          ~/.gradle/wrapper
-        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-        restore-keys: |
-          ${{ runner.os }}-gradle-
-
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
-
-    - name: Clean build
+    - name: Create missing Gradle files
       run: |
-        ./gradlew clean
-
+        cd android
+        # Gradle wrapper oluştur
+        gradle wrapper || echo "Trying alternative method"
+        
     - name: Build APK
       run: |
-        ./gradlew assembleRelease --stacktrace
+        cd android
+        chmod +x ./gradlew
+        ./gradlew assembleRelease
 
-    - name: Upload APK as artifact
+    - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
-        name: app-release-apk
-        path: app/build/outputs/apk/release/*.apk
-        retention-days: 30
-
-    - name: Get current date
-      id: date
-      run: echo "date=$(date +'%Y-%m-%d-%H-%M')" >> $GITHUB_OUTPUT
-
-    - name: Create Release
-      if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
-      uses: softprops/action-gh-release@v1
-      with:
-        tag_name: v1.0.${{ github.run_number }}
-        name: Release v1.0.${{ github.run_number }} (${{ steps.date.outputs.date }})
-        body: |
-          ## 🚀 Network Analyzer Pro - Android APK
-          
-          ### 📦 Build Details
-          - **Version:** v1.0.${{ github.run_number }}
-          - **Build Date:** ${{ steps.date.outputs.date }}
-          - **Commit:** ${{ github.sha }}
-          
-          ### 📥 İndirme
-          Aşağıdaki APK dosyasını indirin ve Android cihazınıza yükleyin.
-        files: app/build/outputs/apk/release/*.apk
-        draft: false
-        prerelease: false
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        name: network-analyzer-apk
+        path: android/app/build/outputs/apk/release/*.apk
