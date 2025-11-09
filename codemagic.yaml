@@ -1,110 +1,35 @@
 workflows:
-  android-complete:
-    name: Complete Android Build
+  android-guaranteed:
+    name: Guaranteed Android Build
     scripts:
       - name: Install dependencies
         script: |
           npm install
       
-      - name: Fix Android Structure
+      - name: Recreate Gradle Wrapper
         script: |
           cd android
           
-          # Eksik VpnPackage.java dosyasını oluştur
-          cat > app/src/main/java/com/networkanalyzerapp/VpnPackage.java << 'EOF'
-          package com.networkanalyzerapp;
-
-          import com.facebook.react.ReactPackage;
-          import com.facebook.react.bridge.NativeModule;
-          import com.facebook.react.bridge.ReactApplicationContext;
-          import com.facebook.react.uimanager.ViewManager;
-
-          import java.util.ArrayList;
-          import java.util.Collections;
-          import java.util.List;
-
-          public class VpnPackage implements ReactPackage {
-              @Override
-              public List<NativeModule> createNativeModules(ReactApplicationContext reactContext) {
-                  List<NativeModule> modules = new ArrayList<>();
-                  modules.add(new VpnModule(reactContext));
-                  return modules;
-              }
-
-              @Override
-              public List<ViewManager> createViewManagers(ReactApplicationContext reactContext) {
-                  return Collections.emptyList();
-              }
-          }
-          EOF
+          # Eski dosyaları temizle
+          rm -rf gradle gradlew gradlew.bat
+          echo "Cleaned old gradle files"
           
-          # MainApplication.java'da VpnPackage import kontrolü
-          cat > app/src/main/java/com/networkanalyzerapp/MainApplication.java << 'EOF'
-          package com.networkanalyzerapp;
-
-          import android.app.Application;
-          import com.facebook.react.PackageList;
-          import com.facebook.react.ReactApplication;
-          import com.facebook.react.ReactNativeHost;
-          import com.facebook.react.ReactPackage;
-          import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint;
-          import com.facebook.react.defaults.DefaultReactNativeHost;
-          import com.facebook.soloader.SoLoader;
-          import java.util.List;
-
-          public class MainApplication extends Application implements ReactApplication {
-
-            private final ReactNativeHost mReactNativeHost =
-                new DefaultReactNativeHost(this) {
-                  @Override
-                  public boolean getUseDeveloperSupport() {
-                    return BuildConfig.DEBUG;
-                  }
-
-                  @Override
-                  protected List<ReactPackage> getPackages() {
-                    @SuppressWarnings("UnnecessaryLocalVariable")
-                    List<ReactPackage> packages = new PackageList(this).getPackages();
-                    // Manual packages
-                    packages.add(new VpnPackage());
-                    return packages;
-                  }
-
-                  @Override
-                  protected String getJSMainModuleName() {
-                    return "index";
-                  }
-
-                  @Override
-                  protected boolean isNewArchEnabled() {
-                    return BuildConfig.IS_NEW_ARCHITECTURE_ENABLED;
-                  }
-
-                  @Override
-                  protected Boolean isHermesEnabled() {
-                    return BuildConfig.IS_HERMES_ENABLED;
-                  }
-                };
-
-            @Override
-            public ReactNativeHost getReactNativeHost() {
-              return mReactNativeHost;
-            }
-
-            @Override
-            public void onCreate() {
-              super.onCreate();
-              SoLoader.init(this, false);
-              if (BuildConfig.IS_NEW_ARCHITECTURE_ENABLED) {
-                DefaultNewArchitectureEntryPoint.load();
-              }
-            }
-          }
-          EOF
-
+          # Yeni gradle wrapper oluştur
+          gradle wrapper --gradle-version 8.4 --distribution-type all
+          echo "Created new gradle wrapper"
+          
+          # Permission ayarla
+          chmod +x gradlew
+          echo "Gradlew permissions:"
+          ls -la gradlew
+          
+          # Test et
+          ./gradlew --version
+          echo "Gradle version check completed"
+          
       - name: Build APK
         script: |
           cd android
-          ./gradlew clean assembleDebug --stacktrace
+          ./gradlew clean assembleDebug --stacktrace --info
     artifacts:
       - android/app/build/outputs/apk/debug/*.apk
