@@ -1,17 +1,19 @@
 workflows:
-  android-fixed:
-    name: Fixed Android Build
+  android-simple:
+    name: Simple Android Build
     scripts:
-      - name: Setup Environment
+      - name: Setup and Build
         script: |
           npm install
-      - name: Build APK
-        script: |
           cd android
-          pwd
-          ls -la
-          chmod 755 gradlew
-          ./gradlew --version
-          ./gradlew clean assembleDebug
+          
+          # Gradle wrapper'ı tamamen yeniden oluştur
+          rm -rf gradle gradlew gradlew.bat
+          
+          # Yeni gradle wrapper oluştur
+          gradle wrapper --gradle-version 8.4
+          
+          # Build al
+          ./gradlew clean assembleDebug --stacktrace
     artifacts:
       - android/app/build/outputs/apk/debug/*.apk
