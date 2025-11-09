@@ -1,26 +1,11 @@
 workflows:
-  android-build:
-    name: Android Build
-    environment:
-      groups: []
-    triggering:
-      events:
-        - push
-      branch_patterns:
-        - pattern: main
-          include: true
+  android-simple:
+    name: Simple Android Build
     scripts:
-      - name: Install npm dependencies
+      - name: Setup and Build
         script: |
           npm install
-      - name: Build Android Debug APK
-        script: |
           cd android
-          chmod +x gradlew
-          ./gradlew assembleDebug
+          ./gradlew clean assembleDebug
     artifacts:
-      - android/app/build/outputs/**/*.apk
-    publishing:
-      email:
-        recipients:
-          - user@example.com
+      - android/app/build/outputs/apk/debug/*.apk
