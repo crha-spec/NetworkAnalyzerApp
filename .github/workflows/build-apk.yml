@@ -30,7 +30,12 @@ jobs:
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
 
-    - name: Build with Gradle
+    - name: Create Gradle Wrapper
+      run: |
+        cd android
+        gradle wrapper
+
+    - name: Build APK
       run: |
         cd android
         chmod +x ./gradlew
