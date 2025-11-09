@@ -1,11 +1,17 @@
 workflows:
-  android-simple:
-    name: Simple Android Build
+  android-fixed:
+    name: Fixed Android Build
     scripts:
-      - name: Setup and Build
+      - name: Setup Environment
         script: |
           npm install
+      - name: Build APK
+        script: |
           cd android
+          pwd
+          ls -la
+          chmod 755 gradlew
+          ./gradlew --version
           ./gradlew clean assembleDebug
     artifacts:
       - android/app/build/outputs/apk/debug/*.apk
